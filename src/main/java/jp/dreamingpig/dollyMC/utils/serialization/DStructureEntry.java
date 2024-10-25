@@ -1,6 +1,8 @@
 package jp.dreamingpig.dollyMC.utils.serialization;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.UUID;
 public class DStructureEntry {
     private DSerializationWrapper wrapper;
 
-    public DStructureEntry(DSerializationWrapper wrapper){
+    DStructureEntry(DSerializationWrapper wrapper){
         this.wrapper = wrapper;
     }
 
@@ -59,5 +61,25 @@ public class DStructureEntry {
 
     public void save(){
         wrapper.save();
+    }
+
+    /**
+     * ディスク上に保存されるデータ構造を生成します。
+     * 既に保存されているデータがある場合、そのデータを読み出せます。
+     * @param plugin データ構造を使用するプラグイン
+     * @param fileName ディスク上に保存する際のファイル名(拡張子不要)
+     * @return ディスク上に保存可能なデータ構造
+     */
+    public static DStructureEntry openStructure(@NotNull Plugin plugin, @NotNull String fileName){
+        return new DStructureEntry(new SectionWrapper(new DSerialization(plugin, fileName)));
+    }
+
+    /**
+     * デバッグ用のデータ構造を生成します。
+     * ディスク上に保存することはできません。
+     * @return デバッグ用のデータ構造
+     */
+    public static DStructureEntry debugStructure(DebugSerialization serialization){
+        return new DStructureEntry(new SectionWrapper(serialization));
     }
 }

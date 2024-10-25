@@ -36,5 +36,5 @@ public interface DSerializationWrapper {
 
     void save();
 
-    DSerialization getSerialization();
+    ISerialization getSerialization();
 }

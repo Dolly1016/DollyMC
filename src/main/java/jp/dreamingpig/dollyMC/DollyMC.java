@@ -1,6 +1,5 @@
 package jp.dreamingpig.dollyMC;
 
-import jp.dreamingpig.dollyMC.utils.serialization.DSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DollyMC extends JavaPlugin {

@@ -12,9 +12,9 @@ import java.util.logging.Level;
 public class DStructureListEntry implements Iterable<DStructureEntry>{
     List<MemoryConfiguration> rawList;
     List<DStructureEntry> entryList;
-    DSerialization serialization;
+    ISerialization serialization;
 
-    DStructureListEntry(DSerialization serialization, List<MemoryConfiguration> list){
+    DStructureListEntry(ISerialization serialization, List<MemoryConfiguration> list){
         this.rawList = list;
         this.serialization = serialization;
         this.entryList = new ArrayList<>(rawList.stream().map((m) -> new DStructureEntry(new SectionWrapper(serialization, m))).toList());

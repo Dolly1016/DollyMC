@@ -10,15 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 class SectionWrapper implements DSerializationWrapper{
-    private DSerialization serialization;
+    private ISerialization serialization;
     private ConfigurationSection mySection;
 
-    public SectionWrapper(DSerialization serialization){
+    public SectionWrapper(ISerialization serialization){
         this.serialization = serialization;
         this.mySection = serialization.getConfig();
     }
 
-    public SectionWrapper(DSerialization serialization, ConfigurationSection section){
+    public SectionWrapper(ISerialization serialization, ConfigurationSection section){
         this.serialization = serialization;
         this.mySection = section;
     }
@@ -127,7 +127,7 @@ class SectionWrapper implements DSerializationWrapper{
     }
 
     @Override
-    public DSerialization getSerialization(){
+    public ISerialization getSerialization(){
         return serialization;
     }
 }
