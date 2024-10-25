@@ -1,0 +1,4 @@
+name: DollyMC
+version: '1.0.0'
+main: jp.dreamingpig.dollyMC.DollyMC
+api-version: '1.21'
