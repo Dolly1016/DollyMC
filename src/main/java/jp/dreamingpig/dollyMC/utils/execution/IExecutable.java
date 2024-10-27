@@ -6,13 +6,27 @@ import org.jetbrains.annotations.Nullable;
 public abstract class IExecutable {
     private boolean isClosed = false;
     private boolean isCanceled = false;
+    private IExecutionHandler myHandler = null;
+    void setHandler(IExecutionHandler handler){
+        if(myHandler == null){
+            myHandler = handler;
+        }else{
+            throw new UnsupportedOperationException("Executable object can be used for only 1 handler.");
+        }
+    }
+
+    IExecutionHandler getHandler(){
+        return myHandler;
+    }
 
     public boolean isClosed(){
         return isClosed;
     }
-    void close(boolean isCanceled){
+    public void close(boolean isCanceled) {
+        if (isClosed) return;
         isClosed = true;
         this.isCanceled = isCanceled;
+        myHandler.onClosed(this);
     }
 
     /**

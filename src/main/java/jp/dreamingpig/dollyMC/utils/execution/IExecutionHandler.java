@@ -5,31 +5,59 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class IExecutionHandler extends IExecutable {
+    final private Player player;
 
-    abstract public Player getPlayer();
+    protected IExecutionHandler(IExecutionHandler handler, Player player){
+        this.player = player;
+        setHandler(handler);
+    }
+
+    public Player getPlayer(){
+        return player;
+    }
+
+    //ルートハンドラは最後の実行を記憶する
+    private IExecution lastExecution = null;
+    IExecution getLastExecution() {
+        return getRoot().lastExecution;
+    }
+    protected void setLastExecution(IExecution execution) {
+        getRoot().lastExecution = lastExecution;
+    }
+
+    protected IExecutable getLastExecutable(){
+        var lastExecution = getRoot().lastExecution;
+        if(lastExecution == null) return null;
+        return lastExecution.getProcess();
+    }
+
+    void onClosed(IExecutable executable){
+        //実行中の要素が中断されたら、次に実行する要素について勘案する。
+        if(executable == getLastExecutable()){
+            resume();
+        }
+    }
 
     /**
-     * 新たな実行可能要素を追加し、実行します。
+     * 新たな実行可能要素を追加します。
      * @param executable 実行可能要素
      */
-    abstract public @Nullable IExecution push(IExecutable executable);
-
-    /**
-     * 現在の実行可能要素を取得します。
-     * @return 実行可能要素
-     */
-    abstract protected @Nullable IExecutable peekExecutable();
-
-    /**
-     * 現在の実行可能要素を完了させたうえで削除し、直前の実行可能要素を再実行します。
-     * @return 実行がある場合、実行
-     */
-    abstract public @Nullable IExecution pop();
+    abstract public boolean push(IExecutable executable);
 
     /**
      * このハンドラを実行します。中断されていた場合は再度実行します。
      */
-    abstract public @Nullable IExecution resume();
+    public @Nullable IExecution resume(){
+        if(getHandler() != null) return getHandler().resume();
+        else {
+            var execution = run(null, player);
+            setLastExecution(execution);
+            return execution;
+        }
+    }
 
-    abstract public @NotNull IExecutionHandler getRoot();
+    public @NotNull IExecutionHandler getRoot(){
+        if(getHandler() == null) return this;
+        return getHandler().getRoot();
+    }
 }

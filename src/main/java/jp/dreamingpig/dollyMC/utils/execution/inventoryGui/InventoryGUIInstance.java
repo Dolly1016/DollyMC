@@ -30,6 +30,16 @@ public class InventoryGUIInstance extends AbstractExecution {
         return myGUI;
     }
 
+    void onGUIClosed(){
+        inactivate();
+
+        //プロセスが未終了で、GUIを閉じたときのルールが中断以外の場合はよしなに終了する。
+        if(myGUI.closeRule != CloseRule.TREAT_INTERRUPT && !getProcess().isClosed()){
+            getProcess().close(myGUI.closeRule == CloseRule.TREAT_CANCEL);
+        }
+    }
+
+
     public Inventory getGUIInventory(){
         return myInventory;
     }
@@ -129,10 +139,12 @@ public class InventoryGUIInstance extends AbstractExecution {
         return myGUI;
     }
 
+    /**
+     * 実行を中止します。
+     * 実行の種類によって、中断されたりキャンセルあるいは正常に実行が完了します。
+     */
     @Override
-    public void terminate(boolean complete) {
-        super.terminate(complete);
-
+    public void suspend() {
         //終了後もGUIが開かれていたら閉じる。
         Bukkit.getScheduler().scheduleSyncDelayedTask(DollyMC.getPlugin(),()->{
            if(getPlayer().getOpenInventory() == myView) getPlayer().closeInventory();

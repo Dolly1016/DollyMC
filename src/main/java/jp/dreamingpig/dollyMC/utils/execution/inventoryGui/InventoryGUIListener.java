@@ -1,12 +1,19 @@
 package jp.dreamingpig.dollyMC.utils.execution.inventoryGui;
 
+import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import jp.dreamingpig.dollyMC.DollyMC;
 import jp.dreamingpig.dollyMC.utils.execution.CloseRule;
+import jp.dreamingpig.dollyMC.utils.execution.ExecutionListener;
+import jp.dreamingpig.dollyMC.utils.execution.StackExecutionHandler;
+import jp.dreamingpig.dollyMC.utils.execution.actionEvent.ActionEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -22,8 +29,21 @@ public class InventoryGUIListener implements Listener {
     }
 
     static public void registerInventoryGUIInstance(UUID owner, InventoryGUIInstance instance){
-        var last = listener.fastMap.put(owner, instance);
-        if(last != null) listener.treatClosedInventory(last);
+        ExecutionListener.ResetAllExecution(owner);
+        listener.fastMap.put(owner, instance);
+    }
+
+    static public void unregister(UUID player){
+        if(listener.fastMap.containsKey(player)) {
+            var lastGUI = listener.fastMap.remove(player);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(DollyMC.getPlugin(), () -> {
+                var onlinePlayer = Bukkit.getPlayer(player);
+                if (onlinePlayer != null && onlinePlayer.getOpenInventory().getTopInventory() == lastGUI.getGUIInventory()) {
+                    onlinePlayer.closeInventory();
+                }
+            });
+            lastGUI.onGUIClosed();
+        }
     }
 
     @Nullable InventoryGUIInstance tryGetInventoryGUIInstance(UUID player, InventoryView view){
@@ -63,21 +83,15 @@ public class InventoryGUIListener implements Listener {
 
     @EventHandler
     void onInventoryClose(InventoryCloseEvent ev){
+        //閉じようとしているインベントリが現在有効なGUIである場合にのみ実行される。
         var instance = tryGetInventoryGUIInstance(ev.getPlayer().getUniqueId(), ev.getView());
         if(instance == null)return;
 
-        treatClosedInventory(instance);
-        fastMap.remove(ev.getPlayer().getUniqueId());
+        var removed = fastMap.remove(ev.getPlayer().getUniqueId());
+        removed.onGUIClosed();
     }
 
-    private void treatClosedInventory(InventoryGUIInstance instance){
-        //終了していないプロセスでかつ、プレイヤーによるインベントリ終了であれば、ルールに沿って適宜実行可能要素を終了させる。
-        if(instance.getGUI().closeRule != CloseRule.TREAT_INTERRUPT && !instance.getProcess().isClosed()){
-            instance.terminate(instance.getGUI().closeRule == CloseRule.TREAT_COMPLETE);
-        }
-    }
-
-    /*
+/*
     @EventHandler
     void onArmSwing(PlayerArmSwingEvent ev){
         var gui = new InventoryGUI("テストGUI ページ1", 2)
@@ -86,11 +100,27 @@ public class InventoryGUIListener implements Listener {
                     var nextPage =new InventoryGUI("テストGUI ページ2", 2)
                             .pushContent(new InventoryGUI.GUIFixedItem((slot) -> slot.line() == 0, new ItemStack(Material.RED_STAINED_GLASS_PANE)))
                             .pushContent(new InventoryGUI.GUIStaticItem(9, new ItemStack(Material.NETHER_STAR), (instance2)->{
-                                instance2.terminate(true);
-                            }));
+                                instance2.suspend();
+                            }))
+                            .pushContent(new InventoryGUI.GUIStaticItem(10, new ItemStack(Material.MELON_SEEDS), (instance2)->{
+                                instance2.getHandler().push(new ActionEvent().activatedAction((aei)->{
+                                    aei.getPlayer().sendMessage("チャットで好きな食べ物を教えてください。");
+                                })
+                                .withChat((aei, chat)->{
+                                    aei.getPlayer().sendMessage(PlainTextComponentSerializer.plainText().serialize(chat) +"が好きなんですね！");
+                                    aei.getProcess().close(false);
+                                    aei.suspend();
+                                    aei.getHandler().resume();
+                                    return true;
+                                })
+                                );
+                                instance2.getHandler().resume();
+                            }))
+                            .closeRule(CloseRule.TREAT_COMPLETE);
                     instance.getHandler().push(nextPage);
+                    instance.getHandler().resume();
                 }));
         new StackExecutionHandler(null, ev.getPlayer(), gui).resume();
     }
-    */
+ */
 }

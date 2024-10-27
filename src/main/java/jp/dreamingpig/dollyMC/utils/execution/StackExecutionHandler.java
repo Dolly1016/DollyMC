@@ -8,8 +8,6 @@ import java.util.Stack;
 
 public class StackExecutionHandler extends IExecutionHandler {
     final private Stack<IExecutable> processStack;
-    final @Nullable private IExecutionHandler myHandler;
-    final private Player player;
 
     /**
      * 実行可能要素を1つ含むハンドラを生成します。
@@ -18,46 +16,22 @@ public class StackExecutionHandler extends IExecutionHandler {
      * @param executable 実行可能要素
      */
     public StackExecutionHandler(@Nullable IExecutionHandler handler, Player player, IExecutable executable){
-        this.myHandler = handler;
-        this.player = player;
+        super(handler, player);
         this.processStack = new Stack<>();
+        push(executable);
+    }
+
+    @Override
+    public boolean push(IExecutable executable){
+        executable.setHandler(this);
         processStack.push(executable);
-    }
-
-    @Override
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * 新たな実行可能要素を追加し、実行します。
-     * @param executable 追加する実行可能要素
-     */
-    @Override
-    @Nullable
-    public IExecution push(IExecutable executable){
-        processStack.push(executable);
-        return resume();
-    }
-
-    @Override
-    protected @Nullable IExecutable peekExecutable() {
-        if(processStack.isEmpty()) return null;
-        return processStack.peek();
-    }
-
-    @Override
-    @Nullable
-    public IExecution pop(){
-        if(processStack.isEmpty())return null;
-        processStack.pop().close(false);
-        return resume();
+        return true;
     }
 
     @Override
     @Nullable
     protected IExecution runImpl(@Nullable IExecutionHandler handler, Player player){
-        if(handler != myHandler) throw new IllegalArgumentException("Unmatched handler has been received.");
+        if(handler != getHandler()) throw new IllegalArgumentException("Unmatched handler has been received.");
 
         while(!processStack.isEmpty()) {
             var peeked = processStack.peek();
@@ -75,22 +49,5 @@ public class StackExecutionHandler extends IExecutionHandler {
             processStack.pop();
         }
         return null;
-    }
-
-    /**
-     * 親のrunメソッドは現在の実行可能要素を適切に実行します。
-     * @return 現在の実行
-     */
-    @Override
-    @Nullable
-    public IExecution resume(){
-        if(myHandler != null) return myHandler.resume();
-        else return run(null, player);
-    }
-
-    @Override
-    public @NotNull IExecutionHandler getRoot() {
-        if(myHandler == null) return this;
-        return myHandler.getRoot();
     }
 }
