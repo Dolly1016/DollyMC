@@ -33,11 +33,11 @@ class DSerialization implements ISerialization{
      * ディスク上に保存されるデータ構造を生成します。
      * 既に保存されているデータがある場合、そのデータを読み出せます。
      * @param plugin データ構造を使用するプラグイン
-     * @param fileName ディスク上に保存する際のファイル名(拡張子不要)
+     * @param fileName ディスク上に保存する際のファイル名(拡張子不要) フォルダの区切り文字には半角スラッシュを使用できます。
      */
     public DSerialization(@NotNull Plugin plugin, @NotNull String fileName) {
         this.plugin = plugin;
-        this.file = fileName + ".yml";
+        this.file = fileName.replace('/', File.separatorChar) + ".yml";
         configFile = new File(plugin.getDataFolder(), file);
     }
 

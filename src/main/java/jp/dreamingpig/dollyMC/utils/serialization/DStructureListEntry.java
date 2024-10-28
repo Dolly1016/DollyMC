@@ -33,6 +33,13 @@ public class DStructureListEntry implements Iterable<DStructureEntry>{
         entryList.remove(index);
     }
 
+    public boolean remove(DStructureEntry element){
+        int index = entryList.indexOf(element);
+        if(index == -1) return false;
+        remove(index);
+        return true;
+    }
+
     public DStructureEntry get(int index){
         return entryList.get(index);
     }

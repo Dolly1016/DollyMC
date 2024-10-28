@@ -3,6 +3,7 @@ package jp.dreamingpig.dollyMC.utils.serialization;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -31,12 +32,24 @@ public class DStructureEntry {
         return wrapper.getLongList(id);
     }
 
+    public DPrimitiveEntry<Double> getDouble(String id, double defaultValue){
+        return new DDoubleEntry(wrapper, id, defaultValue);
+    }
+
     public List<Double> getDoubleList(String id){
         return wrapper.getDoubleList(id);
     }
 
+    public DPrimitiveEntry<String> getString(String id, String defaultValue){
+        return new DStringEntry(wrapper, id, defaultValue);
+    }
+
     public List<String> getStringList(String id){
         return wrapper.getStringList(id);
+    }
+
+    public DPrimitiveEntry<ItemStack> getString(String id, @Nullable ItemStack defaultValue){
+        return new DItemStackEntry(wrapper, id, defaultValue);
     }
 
     public List<ItemStack> getItemStackList(String id){
