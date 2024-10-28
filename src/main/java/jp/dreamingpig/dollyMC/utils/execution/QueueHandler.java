@@ -10,10 +10,12 @@ import java.util.Stack;
 
 public class QueueHandler extends IExecutionHandler {
     Queue<IExecutable> queued;
+    boolean cancelImmediately;
 
-    public QueueHandler(@Nullable IExecutionHandler handler, Player player){
+    public QueueHandler(@Nullable IExecutionHandler handler, Player player, boolean cancelImmediately){
         super(handler, player);
         this.queued = new ArrayDeque<>();
+        this.cancelImmediately = cancelImmediately;
     }
 
     @Override
@@ -23,11 +25,26 @@ public class QueueHandler extends IExecutionHandler {
         return true;
     }
 
+    void onClosed(IExecutable executable){
+        if(cancelImmediately){
+            close(true);
+        }
+    }
+
     @Override
     @Nullable
     protected IExecution runImpl(@Nullable IExecutionHandler handler, Player player){
         if(handler != getHandler()) throw new IllegalArgumentException("Unmatched handler has been received.");
 
+        if(isClosed()) return null;
+        while(!queued.isEmpty()){
+            var peeked = queued.peek();
+            if(peeked.isClosed()){
+                queued.remove();
+            }else{
+                return peeked.run(this, getPlayer());
+            }
+        }
         return null;
     }
 }

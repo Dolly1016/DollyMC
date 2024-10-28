@@ -91,7 +91,6 @@ public class InventoryGUIListener implements Listener {
         removed.onGUIClosed();
     }
 
-/*
     @EventHandler
     void onArmSwing(PlayerArmSwingEvent ev){
         var gui = new InventoryGUI("テストGUI ページ1", 2)
@@ -103,24 +102,20 @@ public class InventoryGUIListener implements Listener {
                                 instance2.suspend();
                             }))
                             .pushContent(new InventoryGUI.GUIStaticItem(10, new ItemStack(Material.MELON_SEEDS), (instance2)->{
-                                instance2.getHandler().push(new ActionEvent().activatedAction((aei)->{
+                                instance2.deepen(new ActionEvent().activatedAction((aei)->{
                                     aei.getPlayer().sendMessage("チャットで好きな食べ物を教えてください。");
                                 })
                                 .withChat((aei, chat)->{
                                     aei.getPlayer().sendMessage(PlainTextComponentSerializer.plainText().serialize(chat) +"が好きなんですね！");
-                                    aei.getProcess().close(false);
-                                    aei.suspend();
-                                    aei.getHandler().resume();
+                                    aei.step(true);
                                     return true;
                                 })
                                 );
-                                instance2.getHandler().resume();
                             }))
                             .closeRule(CloseRule.TREAT_COMPLETE);
-                    instance.getHandler().push(nextPage);
-                    instance.getHandler().resume();
+                    instance.deepen(nextPage);
                 }));
         new StackExecutionHandler(null, ev.getPlayer(), gui).resume();
     }
- */
+
 }

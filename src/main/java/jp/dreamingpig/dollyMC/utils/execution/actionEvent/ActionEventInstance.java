@@ -15,6 +15,7 @@ public class ActionEventInstance extends AbstractExecution {
         myEvent = definition;
 
         ActionEventListener.registerInventoryGUIInstance(player.getUniqueId(), this);
+        if(myEvent.onActivated != null) myEvent.onActivated.accept(this);
     }
 
     void onUnregistered(){

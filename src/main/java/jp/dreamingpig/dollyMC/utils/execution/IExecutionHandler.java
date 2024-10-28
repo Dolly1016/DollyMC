@@ -32,10 +32,6 @@ public abstract class IExecutionHandler extends IExecutable {
     }
 
     void onClosed(IExecutable executable){
-        //実行中の要素が中断されたら、次に実行する要素について勘案する。
-        if(executable == getLastExecutable()){
-            resume();
-        }
     }
 
     /**
