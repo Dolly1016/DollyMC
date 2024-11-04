@@ -91,6 +91,7 @@ public class InventoryGUIListener implements Listener {
         removed.onGUIClosed();
     }
 
+    /*
     @EventHandler
     void onArmSwing(PlayerArmSwingEvent ev){
         var gui = new InventoryGUI("テストGUI ページ1", 2)
@@ -117,5 +118,6 @@ public class InventoryGUIListener implements Listener {
                 }));
         new StackExecutionHandler(null, ev.getPlayer(), gui).resume();
     }
+    //*/
 
 }
