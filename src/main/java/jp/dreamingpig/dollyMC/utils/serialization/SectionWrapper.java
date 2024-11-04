@@ -130,4 +130,9 @@ class SectionWrapper implements DSerializationWrapper{
     public ISerialization getSerialization(){
         return serialization;
     }
+
+    @Override
+    public ConfigurationSection getSection() {
+        return mySection;
+    }
 }
