@@ -43,7 +43,15 @@ public class SerializationTest {
         var listEntry = structure.getStructureList("list");
         var entry1 = listEntry.add();
 
-        var entryInt1 = entry1.getInt("integer1", 10);
-        var entryInt2 = entry1.getInt("integer2", 20);
+        var entryInt1 = entry1.getLongList("numbers");
+        entryInt1.add((long)Integer.MAX_VALUE + 50L);
+        entryInt1.add(10L);
+        serialization.saveConfig();
+
+        logger.info(()-> serialization.toString());
+        DebugSerialization readSerialization = new DebugSerialization(serialization.toString());
+        for(var num : DStructureEntry.debugStructure(readSerialization).getStructureList("list").get(0).getLongList("numbers")){
+            logger.info(()-> "Num: " + num);
+        }
     }
 }
