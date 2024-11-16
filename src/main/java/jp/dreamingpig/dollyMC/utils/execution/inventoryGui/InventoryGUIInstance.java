@@ -2,49 +2,36 @@ package jp.dreamingpig.dollyMC.utils.execution.inventoryGui;
 
 import jp.dreamingpig.dollyMC.DollyMC;
 import jp.dreamingpig.dollyMC.utils.execution.*;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class InventoryGUIInstance extends AbstractExecution {
-    final private InventoryGUI myGUI;
-    private Inventory myInventory;
-    private InventoryView myView;
+public class InventoryGUIInstance<Container> extends AbstractExecution<Container> {
+    @Getter
+    final private InventoryGUI<Container> gui;
+    @Getter
+    private Inventory inventory;
+    private InventoryView inventoryView;
 
-    InventoryGUIInstance(Player player, InventoryGUI definition, IExecutionHandler handler){
-        super(player, handler);
-
-        myGUI = definition;
-
-        InventoryGUIListener.registerInventoryGUIInstance(player.getUniqueId(), this);
+    InventoryGUIInstance(InventoryGUI<Container> definition, Player player, Container container){
+        super(player, container);
+        gui = definition;
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(DollyMC.getPlugin(), ()->{
-            myInventory = Bukkit.createInventory(getPlayer(), myGUI.lines * 9, myGUI.title);
-            myView = getPlayer().openInventory(myInventory);
+            inventory = Bukkit.createInventory(getPlayer(), gui.lines * 9, gui.title);
+            inventoryView = getPlayer().openInventory(inventory);
             onOpen();
         });
     }
 
-    InventoryGUI getGUI(){
-        return myGUI;
-    }
-
-    void onGUIClosed(){
-        inactivate();
-
-        //プロセスが未終了で、GUIを閉じたときのルールが中断以外の場合はよしなに終了する。
-        if(myGUI.closeRule != CloseRule.TREAT_INTERRUPT && !getProcess().isClosed()){
-            getProcess().close(myGUI.closeRule == CloseRule.TREAT_CANCEL);
-        }
-    }
-
-
-    public Inventory getGUIInventory(){
-        return myInventory;
-    }
     public Inventory getPlayerInventory(){
-        return myView.getBottomInventory();
+        return inventoryView.getBottomInventory();
     }
 
     void onOpen(){
@@ -53,101 +40,125 @@ public class InventoryGUIInstance extends AbstractExecution {
     }
 
     private void updateStaticItems(){
-        int size = myInventory.getSize();
+        int size = inventory.getSize();
 
         for(int i = 0;i<size;i++){
             var slotInfo = new InventoryGUI.SlotInfo(i);
 
-            for(var item : myGUI.fixedItems){
+            for(var item : gui.fixedItems){
                 if(item.predicate().predicate(slotInfo)){
-                    myInventory.setItem(i, item.item());
+                    inventory.setItem(i, item.item());
                 }
             }
 
-            for(var item : myGUI.staticItems){
+            for(var item : gui.staticItems){
                 if(item.slot() == i){
-                    myInventory.setItem(i, item.item());
+                    inventory.setItem(i, item.item());
                 }
             }
         }
     }
 
     private void updateDynamicItems(){
-        int size = myInventory.getSize();
+        int size = inventory.getSize();
 
         for(int i = 0;i<size;i++){
-            for(var item : myGUI.dynamicItems){
+            for(var item : gui.dynamicItems){
                 if(item.slot() == i){
-                    myInventory.setItem(i, item.item().apply(this));
+                    inventory.setItem(i, item.item().apply(this));
                 }
             }
         }
 
-        for(var item : myGUI.areaItems) {
+        for(var item : gui.areaItems) {
             int index = 0;
             for (int i = 0; i < size; i++) {
                 if (item.predicate().predicate(new InventoryGUI.SlotInfo(i))) {
-                    myInventory.setItem(i, item.item().apply(this, index++));
+                    inventory.setItem(i, item.item().apply(this, index++));
                 }
             }
         }
-    }
 
-    private boolean onClickInternal(int slot){
-        if(myInventory.getSize() <= slot){
-            if(myGUI.playerAreaEditor != null){
-                return myGUI.playerAreaEditor.onEdit(this, slot - myInventory.getSize());
-            }
-            return false;
-        }else {
-            for (var item : myGUI.staticItems) {
-                if (item.slot() == slot) {
-                    item.onClick().onClick(this);
-
-                    return true;
-                }
-            }
-
-            for (var item : myGUI.dynamicItems) {
-                if (item.slot() == slot) {
-                    item.onClick().onClick(this);
-
-                    return true;
-                }
-            }
-
-            for (var item : myGUI.areaItems) {
-                var slotInfo = new InventoryGUI.SlotInfo(slot);
-                if (item.predicate().predicate(slotInfo)) {
-                    item.onClick().onClick(this, item.getIndex(slot));
-
-                    return true;
+        for(var item : gui.interactiveItems) {
+            int index = 0;
+            for (int i = 0; i < size; i++) {
+                if (item.predicate().predicate(new InventoryGUI.SlotInfo(i))) {
+                    inventory.setItem(i, item.item().apply(this, index++));
                 }
             }
         }
-        return false;
-    }
-
-    void onClick(int slot){
-        if(onClickInternal(slot)){
-            updateDynamicItems();
-        }
-    }
-
-    @Override
-    public IExecutable getProcess(){
-        return myGUI;
     }
 
     /**
-     * 実行を中止します。
-     * 実行の種類によって、中断されたりキャンセルあるいは正常に実行が完了します。
+     * クリック結果
+     * @param requireUpdate GUIコンテンツの更新を要求する場合true。
+     * @param allowUpdateCursor カーソルの自然な更新を要求する場合true。
+     * @param newCursor 上書きするカーソルのアイテム。上書きしない場合はnull。
      */
+    record ClickResult(boolean requireUpdate, boolean allowUpdateCursor, @Nullable ItemStack newCursor){}
+    private ClickResult onClickInternal(Inventory clicked, int slotInInventory, @NotNull ItemStack cursor){
+        if(inventory != clicked){
+            if(gui.playerAreaEditor != null){
+                boolean allowUpdateCursor = gui.playerAreaEditor.onEdit(this, slotInInventory);
+                return new ClickResult(true, allowUpdateCursor,  null);
+            }
+            return new ClickResult(false, false,  null);
+        }else {
+            for (var item : gui.staticItems) {
+                if (item.slot() == slotInInventory) {
+                    item.onClick().onClick(this);
+                    return new ClickResult(true, false,  null);
+                }
+            }
+
+            for (var item : gui.dynamicItems) {
+                if (item.slot() == slotInInventory) {
+                    item.onClick().onClick(this);
+                    return new ClickResult(true, false,  null);
+                }
+            }
+
+            var slotInfo =new InventoryGUI.SlotInfo(slotInInventory);
+
+            for (var item : gui.areaItems) {
+                if (item.predicate().predicate(slotInfo)) {
+                    item.onClick().onClick(this, item.getIndex(slotInInventory));
+                    return new ClickResult(true, false,  null);
+                }
+            }
+
+            for(var item : gui.interactiveItems){
+                if(item.predicate().predicate(slotInfo)){
+                    var newCursor = item.onClick().onClick(this, cursor, item.getIndex(slotInInventory));
+                    return new ClickResult(true, false,  newCursor);
+                }
+            }
+        }
+        return new ClickResult(false, false,  null);
+    }
+
+    ClickResult onClick(Inventory clicked, int slotInInventory, @NotNull ItemStack cursor){
+        var result = onClickInternal(clicked, slotInInventory, cursor);
+        if(result.requireUpdate) updateDynamicItems();
+        return result;
+    }
+
+    public void changeTitle(String title){
+        inventoryView.setTitle(title);
+    }
+
     @Override
-    public void suspend() {
-        //終了後もGUIが開かれていたら閉じる。
-        Bukkit.getScheduler().scheduleSyncDelayedTask(DollyMC.getPlugin(),()->{
-           if(getPlayer().getOpenInventory() == myView) getPlayer().closeInventory();
+    public ExecutionScenario<?> getScenario() {
+        return gui.scenario;
+    }
+
+    @Override
+    protected void onSuspend(@Nullable Runnable callback){
+        Bukkit.getScheduler().scheduleSyncDelayedTask(DollyMC.getPlugin(), ()->{
+            if(getPlayer().getOpenInventory() == inventoryView){
+                getPlayer().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+            }
+            super.onSuspend(callback);
         });
     }
 }

@@ -1,48 +1,51 @@
 package jp.dreamingpig.dollyMC.utils.execution.actionEvent;
 
 
-import jp.dreamingpig.dollyMC.utils.execution.IExecutable;
-import jp.dreamingpig.dollyMC.utils.execution.IExecution;
-import jp.dreamingpig.dollyMC.utils.execution.IExecutionHandler;
+import jp.dreamingpig.dollyMC.utils.execution.ContainerConstructor;
+import jp.dreamingpig.dollyMC.utils.execution.ExecutionScenario;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.apache.commons.lang3.function.TriFunction;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class ActionEvent extends IExecutable {
-    public interface ChatAction{
-        boolean onChat(ActionEventInstance instance, Component chat);
+public class ActionEvent<Container> {
+    public interface ChatAction<Container>{
+        boolean onChat(ActionEventInstance<Container> instance, Component chat);
     }
-    public interface EntityAction{
-        boolean onClickEntity(ActionEventInstance instance, Entity entity, ClickType clickType);
+    public interface EntityAction<Container>{
+        boolean onClickEntity(ActionEventInstance<Container> instance, Entity entity, ClickType clickType);
     }
-    public interface BlockAction{
-        boolean onClickBlock(ActionEventInstance instance, Block block, BlockFace blockFace, ClickType clickType);
+    public interface BlockAction<Container>{
+        boolean onClickBlock(ActionEventInstance<Container> instance, Block block, BlockFace blockFace, ClickType clickType);
     }
-    public interface AirAction{
-        boolean onClickAir(ActionEventInstance instance, ClickType clickType);
+    public interface AirAction<Container>{
+        boolean onClickAir(ActionEventInstance<Container> instance, ClickType clickType);
     }
 
-    @Nullable ChatAction onChat = null;
-    @Nullable BlockAction onClickBlock = null;
-    @Nullable EntityAction onClickEntity = null;
-    @Nullable AirAction onClickAir = null;
-    @Nullable Consumer<ActionEventInstance> onActivated = null;
+    @Getter @Setter(AccessLevel.PRIVATE)
+    private ContainerConstructor<Container> constructor;
+    @Nullable ChatAction<Container> onChat = null;
+    @Nullable BlockAction<Container> onClickBlock = null;
+    @Nullable EntityAction<Container> onClickEntity = null;
+    @Nullable AirAction<Container> onClickAir = null;
+    @Nullable Consumer<ActionEventInstance<Container>> onActivated = null;
+    @Nullable ExecutionScenario<?> scenario = null;
 
-    public ActionEvent(){}
+    public ActionEvent(ContainerConstructor<Container> constructor){
+        this.constructor = constructor;
+    }
 
     /**
      * イベントが有効化されたときに実行する処理を設定します。
      */
-    public ActionEvent activatedAction(Consumer<ActionEventInstance> onActivated){
+    public ActionEvent<Container> activatedAction(Consumer<ActionEventInstance<Container>> onActivated){
         this.onActivated = onActivated;
         return this;
     }
@@ -53,7 +56,7 @@ public class ActionEvent extends IExecutable {
      * @param onChat
      * @return
      */
-    public ActionEvent withChat(ChatAction onChat){
+    public ActionEvent<Container> withChat(ChatAction<Container> onChat){
         this.onChat = onChat;
         return this;
     }
@@ -63,7 +66,7 @@ public class ActionEvent extends IExecutable {
      * 関数がtrueを返す場合、本来の動作をキャンセルします。
      * {@link ClickType}は左右のクリックとそれぞれのシフト同時押しの4つのいずれかを受け取ります。
      */
-    public ActionEvent withClickBlock(BlockAction onClickBlock){
+    public ActionEvent<Container> withClickBlock(BlockAction<Container> onClickBlock){
         this.onClickBlock = onClickBlock;
         return this;
     }
@@ -73,7 +76,7 @@ public class ActionEvent extends IExecutable {
      * 関数がtrueを返す場合、本来の動作をキャンセルします。
      * {@link ClickType}は左右のクリックとそれぞれのシフト同時押しの4つのいずれかを受け取ります。
      */
-    public ActionEvent withClickEntity(EntityAction onClickEntity){
+    public ActionEvent<Container> withClickEntity(EntityAction<Container> onClickEntity){
         this.onClickEntity = onClickEntity;
         return this;
     }
@@ -83,13 +86,13 @@ public class ActionEvent extends IExecutable {
      * 関数がtrueを返す場合、本来の動作をキャンセルします。
      * {@link ClickType}は右クリックとシフト右クリックの2つのいずれかを受け取ります。
      */
-    public ActionEvent withClickAir(AirAction onClickAir){
+    public ActionEvent<Container> withClickAir(AirAction<Container> onClickAir){
         this.onClickAir = onClickAir;
         return this;
     }
 
-    @Override
-    protected IExecution runImpl(@Nullable IExecutionHandler handler, @Nullable Player player) {
-        return new ActionEventInstance(player, this, handler);
+    public ActionEvent<Container> withScenario(ExecutionScenario<?> chain){
+        this.scenario = chain;
+        return this;
     }
 }

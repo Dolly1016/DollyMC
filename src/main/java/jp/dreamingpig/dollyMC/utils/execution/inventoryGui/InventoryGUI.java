@@ -1,12 +1,9 @@
 package jp.dreamingpig.dollyMC.utils.execution.inventoryGui;
 
-import jp.dreamingpig.dollyMC.utils.execution.CloseRule;
-import jp.dreamingpig.dollyMC.utils.execution.IExecutable;
-import jp.dreamingpig.dollyMC.utils.execution.IExecutionHandler;
-import jp.dreamingpig.dollyMC.utils.execution.IExecution;
+import jp.dreamingpig.dollyMC.utils.execution.ExecutionScenario;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -18,15 +15,29 @@ import java.util.function.Function;
  * クリック操作ができるインベントリGUIの定義です。
  * この定義をもとに{@link InventoryGUIInstance}が生成されます。
  */
-public class InventoryGUI extends IExecutable {
-    public interface PlayerAreaEditor{
-        boolean onEdit(InventoryGUIInstance instance, int slot);
+public class InventoryGUI<Container> {
+    /**
+     * プレイヤーインベントリを操作しようとしたときに呼び出されます。操作しようとしているスロットの位置も受け取ります。
+     * プレイヤーインベントリの編集を許可する場合、trueを返してください。
+     * @param <Container>
+     */
+    public interface PlayerAreaEditor<Container>{
+        boolean onEdit(InventoryGUIInstance<Container> instance, int slot);
     }
-    public interface GUIClickEvent{
-        void onClick(InventoryGUIInstance instance);
+    public interface GUIClickEvent<Container>{
+        void onClick(InventoryGUIInstance<Container> instance);
     }
-    public interface GUIClickInAreaEvent{
-        void onClick(InventoryGUIInstance instance, int index);
+    public interface GUIClickInAreaEvent<Container>{
+        void onClick(InventoryGUIInstance<Container> instance, int index);
+    }
+
+    /**
+     * インタラクションが発生したときのイベントを表します。
+     * カーソルのアイテムを書き換えない場合はnullを返します。
+     * @param <Container>
+     */
+    public interface GUIClickInInteractiveAreaEvent<Container>{
+        @Nullable ItemStack onClick(InventoryGUIInstance<Container> instance, @NotNull ItemStack cursor, int index);
     }
     public record SlotInfo(int slot){
         public int line(){
@@ -41,9 +52,23 @@ public class InventoryGUI extends IExecutable {
     }
 
     public record GUIFixedItem(SlotPredicate predicate, ItemStack item){}
-    public record GUIStaticItem(int slot, ItemStack item, GUIClickEvent onClick){}
-    public record GUIDynamicItem(int slot, Function<InventoryGUIInstance, ItemStack> item, GUIClickEvent onClick){}
-    public record GUIAreaItem(SlotPredicate predicate, BiFunction<InventoryGUIInstance, Integer, @Nullable ItemStack> item, GUIClickInAreaEvent onClick){
+    public record GUIStaticItem<Container>(int slot, ItemStack item, GUIClickEvent<Container> onClick){}
+    public record GUIDynamicItem<Container>(int slot, Function<InventoryGUIInstance<Container>, ItemStack> item, GUIClickEvent<Container> onClick){}
+    public record GUIAreaItem<Container>(SlotPredicate predicate, BiFunction<InventoryGUIInstance<Container>, Integer, @Nullable ItemStack> item, GUIClickInAreaEvent<Container> onClick){
+        /**
+         * スロットの位置をエリア上の位置に変換します。
+         * @param slot インベントリGUI上での位置
+         * @return エリア上の位置
+         */
+        public int getIndex(int slot){
+            int index = 0;
+            for(int i = 0;i<slot;i++){
+                if(predicate.predicate(new SlotInfo(i))) index++;
+            }
+            return index;
+        }
+    }
+    public record GUIInteractiveAreaItem<Container>(SlotPredicate predicate, BiFunction<InventoryGUIInstance<Container>, Integer, @Nullable ItemStack> item, GUIClickInInteractiveAreaEvent<Container> onClick){
         /**
          * スロットの位置をエリア上の位置に変換します。
          * @param slot インベントリGUI上での位置
@@ -58,14 +83,15 @@ public class InventoryGUI extends IExecutable {
         }
     }
 
-    @Nullable PlayerAreaEditor playerAreaEditor = null;
+    @Nullable PlayerAreaEditor<Container> playerAreaEditor = null;
     List<GUIFixedItem> fixedItems = new ArrayList<>();
-    List<GUIStaticItem> staticItems = new ArrayList<>();
-    List<GUIDynamicItem> dynamicItems = new ArrayList<>();
-    List<GUIAreaItem> areaItems = new ArrayList<>();
+    List<GUIStaticItem<Container>> staticItems = new ArrayList<>();
+    List<GUIDynamicItem<Container>> dynamicItems = new ArrayList<>();
+    List<GUIAreaItem<Container>> areaItems = new ArrayList<>();
+    List<GUIInteractiveAreaItem<Container>> interactiveItems = new ArrayList<>();
     final int lines;
     final Component title;
-    CloseRule closeRule = CloseRule.TREAT_INTERRUPT;
+    @Nullable ExecutionScenario<?> scenario = null;
 
     public InventoryGUI(String title, int lines){
         this.title = Component.text(title);
@@ -77,12 +103,12 @@ public class InventoryGUI extends IExecutable {
         this.lines = lines;
     }
 
-    public InventoryGUI closeRule(CloseRule rule){
-        this.closeRule = rule;
-        return this;
-    }
-
-    public InventoryGUI playerAreaEditor(@Nullable PlayerAreaEditor editor){
+    /**
+     * プレイヤーのインベントリを操作しようとすると呼び出されるコールバックを追加します。
+     * @param editor プレイヤーインベントリのエディタ
+     * @return インベントリGUI定義
+     */
+    public InventoryGUI<Container> playerAreaEditor(@Nullable PlayerAreaEditor<Container> editor){
         this.playerAreaEditor = editor;
         return this;
     }
@@ -93,7 +119,7 @@ public class InventoryGUI extends IExecutable {
      * @param item 要素
      * @return インベントリGUI定義
      */
-    public InventoryGUI pushContent(GUIFixedItem item){
+    public InventoryGUI<Container> pushContent(GUIFixedItem item){
         this.fixedItems.add(item);
         return this;
     }
@@ -104,7 +130,7 @@ public class InventoryGUI extends IExecutable {
      * @param item 要素
      * @return インベントリGUI定義
      */
-    public InventoryGUI pushContent(GUIStaticItem item){
+    public InventoryGUI<Container> pushContent(GUIStaticItem<Container> item){
         this.staticItems.add(item);
         return this;
     }
@@ -116,7 +142,7 @@ public class InventoryGUI extends IExecutable {
      * @param item 要素
      * @return インベントリGUI定義
      */
-    public InventoryGUI pushContent(GUIDynamicItem item){
+    public InventoryGUI<Container> pushContent(GUIDynamicItem<Container> item){
         this.dynamicItems.add(item);
         return this;
     }
@@ -128,13 +154,25 @@ public class InventoryGUI extends IExecutable {
      * @param item 要素
      * @return インベントリGUI定義
      */
-    public InventoryGUI pushContent(GUIAreaItem item){
+    public InventoryGUI<Container> pushContent(GUIAreaItem<Container> item){
         this.areaItems.add(item);
         return this;
     }
 
-    @Override
-    protected IExecution runImpl(@Nullable IExecutionHandler handler, @Nullable Player player) {
-        return new InventoryGUIInstance(player, this, handler);
+    /**
+     * クリックおよびアイテムの持ち込み、持ち出しができる動的なコレクションの要素を追加します。
+     * この要素をクリックすると、紐づいたアクションが実行され、画面が更新されます。
+     * クリック操作によって関連するコレクションを変更する場合、GUIを開いている間の並行したコレクションの操作は回避されるべきです。
+     * @param item 要素
+     * @return インベントリGUI定義
+     */
+    public InventoryGUI<Container> pushContent(GUIInteractiveAreaItem<Container> item){
+        this.interactiveItems.add(item);
+        return this;
+    }
+
+    public InventoryGUI<Container> withScenario(ExecutionScenario<?> chain){
+        this.scenario = chain;
+        return this;
     }
 }
