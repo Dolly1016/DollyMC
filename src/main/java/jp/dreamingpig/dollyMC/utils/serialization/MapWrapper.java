@@ -20,48 +20,59 @@ public class MapWrapper implements DSerializationWrapper{
     }
 
     @Override
+    public Iterable<String> getKeys(){
+        return this.myMap.keySet();
+    }
+
+    @Override
     public boolean contains(String id){
         return myMap.containsKey(id);
     }
 
+    private <T> List<T> getList(String id) {
+        if (myMap.containsKey(id)) {
+            var list = myMap.get(id);
+            if (list instanceof List<?> correctList) return (List<T>)correctList;
+        }
+        List<T> newList = new ArrayList<>();
+        myMap.put(id, newList);
+        return newList;
+    }
+
     @Override
     public int getInt(String id){
-        return (Integer)myMap.get(id);
+        if(myMap.get(id) instanceof Integer num) return num;
+        return 0;
     }
     @Override
     public void setInt(String id, int value){
         myMap.put(id, value);
     }
     @Override
-    public List<Integer> getIntList(String id){
-        if(myMap.containsKey(id)){
-            var list = myMap.get(id);
-            return (List<Integer>)list;
-        }else{
-            List<Integer> list = new ArrayList<>();
-            myMap.put(id, list);
-            return list;
-        }
+    public List<Integer> getIntList(String id) {
+        return this.<Integer>getList(id);
     }
 
     @Override
     public long getLong(String id) {
+        if(myMap.get(id) instanceof Long num) return num;
         return 0;
     }
 
     @Override
     public void setLong(String id, long value) {
-
+        myMap.put(id, value);
     }
 
     @Override
     public List<Long> getLongList(String id) {
-        return List.of();
+        return this.<Long>getList(id);
     }
 
     @Override
     public double getDouble(String id) {
-        return (Double)myMap.get(id);
+        if(myMap.get(id) instanceof Double num) return num;
+        return 0;
     }
 
     @Override
@@ -71,12 +82,13 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public List<Double> getDoubleList(String id) {
-        return List.of();
+        return this.<Double>getList(id);
     }
 
     @Override
     public String getString(String id) {
-        return (String)myMap.get(id);
+        if(myMap.get(id) instanceof String val) return val;
+        return "";
     }
 
     @Override
@@ -86,113 +98,34 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public List<String> getStringList(String id) {
-        return List.of();
+        return this.<String>getList(id);
     }
 
     @Override
     public @Nullable ItemStack getItemStack(String id) {
+        if(myMap.get(id) instanceof ItemStack is) return is;
         return null;
     }
 
     @Override
     public void setItemStack(String id, ItemStack value) {
-
+        myMap.put(id, value);
     }
 
     @Override
     public List<ItemStack> getItemStackList(String id) {
-        return List.of();
+        return this.<ItemStack>getList(id);
     }
 
     @Override
     public DSerializationWrapper editMap(String id) {
-        return new MapWrapper(serialization, (Map<String, Object>)myMap.get(id));
+        return new MapWrapper(serialization, (Map<String, Object>) myMap.get(id));
     }
 
     @Override
     public List<Map<String, ?>> editList(String id) {
         return (List<Map<String, ?>>)myMap.get(id);
     }
-
-    /*
-    @Override
-    public long getLong(String id){
-        return mySection.getLong(id);
-    }
-    @Override
-    public void setLong(String id, long value){
-        mySection.set(id, value);
-    }
-    @Override
-    public List<Long> getLongList(String id){
-        var list = mySection.getLongList(id);
-        mySection.set(id, list);
-        return list;
-    }
-
-    @Override
-    public double getDouble(String id){
-        return mySection.getDouble(id);
-    }
-    @Override
-    public void setDouble(String id, double value){
-        mySection.set(id, value);
-    }
-    @Override
-    public List<Double> getDoubleList(String id){
-        var list = mySection.getDoubleList(id);
-        mySection.set(id, list);
-        return list;
-    }
-
-    @Override
-    public String getString(String id){
-        return mySection.getString(id);
-    }
-    @Override
-    public void setString(String id, String value){
-        mySection.set(id, value);
-    }
-    @Override
-    public List<String> getStringList(String id){
-        var list = mySection.getStringList(id);
-        mySection.set(id, list);
-        return list;
-    }
-
-    @Override
-    @Nullable
-    public ItemStack getItemStack(String id){
-        return mySection.getItemStack(id);
-    }
-    @Override
-    public void setItemStack(String id, ItemStack value){
-        mySection.set(id, value);
-    }
-    @Override
-    public List<ItemStack> getItemStackList(String id){
-        var rawList = mySection.getList(id, new ArrayList<ItemStack>());
-        mySection.set(id, rawList);
-        return (List<ItemStack>)rawList;
-    }
-
-    @Override
-    public DSerializationWrapper editMap(String id){
-        var section = mySection.getConfigurationSection(id);
-        if(section == null) {
-            section = new MemoryConfiguration();
-        }
-        mySection.set(id, section);
-        return new SectionWrapper(serialization, section);
-    }
-
-    @Override
-    public List<LinkedHashMap<String, ?>> editList(String id){
-        var rawList = mySection.getList(id, new ArrayList<MemoryConfiguration>());
-        mySection.set(id, rawList);
-        return (List<LinkedHashMap<String, ?>>)rawList;
-    }
-    */
 
     @Override
     public void save(){
