@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 class SectionWrapper implements DSerializationWrapper{
     private ISerialization serialization;
@@ -116,10 +117,10 @@ class SectionWrapper implements DSerializationWrapper{
     }
 
     @Override
-    public List<LinkedHashMap<String, ?>> editList(String id){
+    public List<Map<String, ?>> editList(String id){
         var rawList = mySection.getList(id, new ArrayList<MemoryConfiguration>());
         mySection.set(id, rawList);
-        return (List<LinkedHashMap<String, ?>>)rawList;
+        return (List<Map<String, ?>>)rawList;
     }
 
     @Override

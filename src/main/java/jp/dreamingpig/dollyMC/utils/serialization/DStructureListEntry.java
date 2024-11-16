@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 
-public class DStructureListEntry implements Iterable<DStructureEntry>{
+public class DStructureListEntry implements Iterable<DStructureEntry> {
     List<LinkedHashMap<String, ?>> rawList;
     List<DStructureEntry> entryList;
     ISerialization serialization;
@@ -48,6 +48,10 @@ public class DStructureListEntry implements Iterable<DStructureEntry>{
 
     public void save(){
         serialization.saveConfig();
+    }
+
+    public int size(){
+        return entryList.size();
     }
 
     @Override

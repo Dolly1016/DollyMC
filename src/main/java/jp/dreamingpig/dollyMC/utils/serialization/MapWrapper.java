@@ -14,7 +14,7 @@ public class MapWrapper implements DSerializationWrapper{
     private ISerialization serialization;
     private Map<String, Object> myMap;
 
-    public MapWrapper(ISerialization serialization, LinkedHashMap<String, Object> map){
+    public MapWrapper(ISerialization serialization, Map<String, Object> map){
         this.serialization = serialization;
         this.myMap = map;
     }
@@ -106,12 +106,12 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public DSerializationWrapper editMap(String id) {
-        return null;
+        return new MapWrapper(serialization, (Map<String, Object>)myMap.get(id));
     }
 
     @Override
-    public List<LinkedHashMap<String, ?>> editList(String id) {
-        return List.of();
+    public List<Map<String, ?>> editList(String id) {
+        return (List<Map<String, ?>>)myMap.get(id);
     }
 
     /*

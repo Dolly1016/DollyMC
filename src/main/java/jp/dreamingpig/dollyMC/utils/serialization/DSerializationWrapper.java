@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface DSerializationWrapper {
     boolean contains(String id);
@@ -33,7 +34,7 @@ public interface DSerializationWrapper {
     List<ItemStack> getItemStackList(String id);
 
     DSerializationWrapper editMap(String id);
-    List<LinkedHashMap<String, ?>> editList(String id);
+    List<Map<String, ?>> editList(String id);
 
     void save();
 
