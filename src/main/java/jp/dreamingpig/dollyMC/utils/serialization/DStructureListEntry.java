@@ -6,23 +6,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 
 public class DStructureListEntry implements Iterable<DStructureEntry>{
-    List<MemoryConfiguration> rawList;
+    List<LinkedHashMap<String, ?>> rawList;
     List<DStructureEntry> entryList;
     ISerialization serialization;
 
-    DStructureListEntry(ISerialization serialization, List<MemoryConfiguration> list){
+    DStructureListEntry(ISerialization serialization, List<LinkedHashMap<String, ?>> list){
         this.rawList = list;
         this.serialization = serialization;
-        this.entryList = new ArrayList<>(rawList.stream().map((m) -> new DStructureEntry(new SectionWrapper(serialization, m))).toList());
+        this.entryList = new ArrayList<>(rawList.stream().map((m) -> new DStructureEntry(new MapWrapper(serialization, (LinkedHashMap<String, Object>)m))).toList());
     }
 
     public DStructureEntry add(){
-        var mem = new MemoryConfiguration();
-        var entry = new DStructureEntry(new SectionWrapper(serialization, mem));
+        var mem = new LinkedHashMap<String, Object>();
+
+        var entry = new DStructureEntry(new MapWrapper(serialization, mem));
         rawList.add(mem);
         entryList.add(entry);
         return entry;

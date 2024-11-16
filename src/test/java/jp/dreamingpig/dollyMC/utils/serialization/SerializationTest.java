@@ -1,10 +1,15 @@
 package jp.dreamingpig.dollyMC.utils.serialization;
 
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SerializationTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(SerializationTest.class);
+
 
     /**
      * データの永続化が使用できます。
@@ -27,5 +32,18 @@ public class SerializationTest {
 
         //実際の環境では、ファイルにこのテキストが書き込まれ、データが永続化されます。
         assertEquals("entry: 50\n", serialization.toString(), "データがテキストに正しく出力される必要があります。");
+    }
+
+    @Test
+    void serializationStructureList(){
+        // 実際の環境では DStructureEntry.openStructure(plugin, filename) で永続化されたデータ構造を得られます。
+        DebugSerialization serialization = new DebugSerialization();
+        var structure = DStructureEntry.debugStructure(serialization);
+
+        var listEntry = structure.getStructureList("list");
+        var entry1 = listEntry.add();
+
+        var entryInt1 = entry1.getInt("integer1", 10);
+        var entryInt2 = entry1.getInt("integer2", 20);
     }
 }

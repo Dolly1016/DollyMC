@@ -48,7 +48,7 @@ public class DStructureEntry {
         return wrapper.getStringList(id);
     }
 
-    public DPrimitiveEntry<ItemStack> getString(String id, @Nullable ItemStack defaultValue){
+    public DPrimitiveEntry<ItemStack> getItemStack(String id, @Nullable ItemStack defaultValue){
         return new DItemStackEntry(wrapper, id, defaultValue);
     }
 

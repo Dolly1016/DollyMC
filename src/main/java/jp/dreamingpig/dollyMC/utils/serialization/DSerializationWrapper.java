@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public interface DSerializationWrapper {
@@ -32,7 +33,7 @@ public interface DSerializationWrapper {
     List<ItemStack> getItemStackList(String id);
 
     DSerializationWrapper editMap(String id);
-    List<MemoryConfiguration> editList(String id);
+    List<LinkedHashMap<String, ?>> editList(String id);
 
     void save();
 
