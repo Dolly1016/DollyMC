@@ -32,7 +32,7 @@ public class MapWrapper implements DSerializationWrapper{
     private <T> List<T> getList(String id) {
         if (myMap.containsKey(id)) {
             var list = myMap.get(id);
-            if (list instanceof List<?> correctList) return (List<T>)correctList;
+            if (list instanceof List<?> correctList) return (List<T>) correctList;
         }
         List<T> newList = new ArrayList<>();
         myMap.put(id, newList);
@@ -66,7 +66,12 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public List<Long> getLongList(String id) {
-        return this.<Long>getList(id);
+        var list = this.<Number>getList(id);
+        var longList = (List<Long>)(List<?>)list;
+        for(int i = 0;i<list.size();i++){
+            longList.set(i,list.get(i).longValue());
+        }
+        return longList;
     }
 
     @Override
