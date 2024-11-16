@@ -11,6 +11,7 @@ import java.util.Map;
 
 public interface DSerializationWrapper {
     boolean contains(String id);
+    Iterable<String> getKeys();
 
     int getInt(String id);
     void setInt(String id, int value);

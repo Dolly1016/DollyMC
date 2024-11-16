@@ -16,6 +16,10 @@ public class DStructureEntry {
         this.wrapper = wrapper;
     }
 
+    public Iterable<String> getKeys(){
+        return wrapper.getKeys();
+    }
+
     public DPrimitiveEntry<Integer> getInt(String id, int defaultValue){
         return new DIntegerEntry(wrapper, id, defaultValue);
     }

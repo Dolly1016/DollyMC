@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +22,11 @@ class SectionWrapper implements DSerializationWrapper{
     public SectionWrapper(ISerialization serialization, ConfigurationSection section){
         this.serialization = serialization;
         this.mySection = section;
+    }
+
+    @Override
+    public Iterable<String> getKeys(){
+        return this.mySection.getKeys(false);
     }
 
     @Override

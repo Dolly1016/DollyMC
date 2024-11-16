@@ -4,18 +4,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class DStructureListEntry implements Iterable<DStructureEntry> {
-    List<LinkedHashMap<String, ?>> rawList;
+    List<Map<String, ?>> rawList;
     List<DStructureEntry> entryList;
     ISerialization serialization;
 
-    DStructureListEntry(ISerialization serialization, List<LinkedHashMap<String, ?>> list){
+    DStructureListEntry(ISerialization serialization, List<Map<String, ?>> list){
         this.rawList = list;
         this.serialization = serialization;
         this.entryList = new ArrayList<>(rawList.stream().map((m) -> new DStructureEntry(new MapWrapper(serialization, (LinkedHashMap<String, Object>)m))).toList());
