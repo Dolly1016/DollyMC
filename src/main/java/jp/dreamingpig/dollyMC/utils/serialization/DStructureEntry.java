@@ -1,5 +1,6 @@
 package jp.dreamingpig.dollyMC.utils.serialization;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +77,16 @@ public class DStructureEntry {
         return new DStructureListEntry(wrapper.getSerialization(), wrapper.editList(id));
     }
 
+     public boolean contains(String id) {
+        return wrapper.contains(id);
+     }
+
     public void save(){
         wrapper.save();
+    }
+
+    public ConfigurationSection getSection() {
+        return wrapper.getSection();
     }
 
     /**

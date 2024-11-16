@@ -1,5 +1,6 @@
 package jp.dreamingpig.dollyMC.utils.serialization;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -40,4 +41,5 @@ public interface DSerializationWrapper {
     void save();
 
     ISerialization getSerialization();
+    ConfigurationSection getSection();
 }
