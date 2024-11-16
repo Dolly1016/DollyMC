@@ -41,7 +41,7 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public int getInt(String id){
-        if(myMap.get(id) instanceof Integer num) return num;
+        if(myMap.get(id) instanceof Number num) return num.intValue();
         return 0;
     }
     @Override
@@ -55,7 +55,7 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public long getLong(String id) {
-        if(myMap.get(id) instanceof Long num) return num;
+        if(myMap.get(id) instanceof Number num) return num.longValue();
         return 0;
     }
 
@@ -71,7 +71,7 @@ public class MapWrapper implements DSerializationWrapper{
 
     @Override
     public double getDouble(String id) {
-        if(myMap.get(id) instanceof Double num) return num;
+        if(myMap.get(id) instanceof Number num) return num.doubleValue();
         return 0;
     }
 
