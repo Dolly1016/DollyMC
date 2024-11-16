@@ -17,6 +17,10 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * 領域を管理するマップです。
+ * @param <T> 領域コンテンツ。{@link RegionContent}を継承する必要があります。
+ */
 public class RegionMap<T extends RegionContent> {
     final private DStructureEntry myEntry;
     final private DStructureListEntry contentsEntry;
@@ -146,6 +150,12 @@ public class RegionMap<T extends RegionContent> {
         }
     }
 
+    /**
+     * 指定の範囲に領域コンテンツを追加します。
+     * 他領域との重複は考慮されません。
+     * @param area
+     * @return
+     */
     public T register(Area area){
         var entry = contentsEntry.add();
         var content = constructor.apply(entry, area);
