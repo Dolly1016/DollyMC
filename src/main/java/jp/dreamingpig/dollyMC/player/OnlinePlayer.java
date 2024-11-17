@@ -1,8 +1,10 @@
 package jp.dreamingpig.dollyMC.player;
 
 import jp.dreamingpig.dollyMC.DollyMC;
+import jp.dreamingpig.dollyMC.augmentedEquipment.AugmentedEquipment;
 import jp.dreamingpig.dollyMC.events.PlayerEntryGeneratedEvent;
 import jp.dreamingpig.dollyMC.utils.serialization.DStructureEntry;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,16 +22,32 @@ public class OnlinePlayer {
     final static private Map<UUID, OnlinePlayer> fastPlayerMap = new HashMap<>();
     final private DStructureEntry myEntry;
     final private UUID uuid;
+    @Getter
+    final AugmentedEquipment augmentedEquipment;
 
+    /**
+     * プレイヤーのエントリを取得します。
+     * @return
+     */
     public DStructureEntry getRuntimeDataEntry(){
         return myEntry;
     }
 
-    public OnlinePlayer(@NotNull UUID player){
+    static OnlinePlayer generateOnlinePlayer(@NotNull UUID player){
+        if(fastPlayerMap.containsKey(player)){
+            return fastPlayerMap.get(player);
+        }
+        return new OnlinePlayer(player);
+    }
+
+    private OnlinePlayer(@NotNull UUID player){
         uuid = player;
         myEntry = DStructureEntry.openStructure(DollyMC.getPlugin(), "players/" + player.toString());
 
         fastPlayerMap.put(player, this);
+
+        //各種モジュールの読み込み
+        this.augmentedEquipment = new AugmentedEquipment(this);
 
         Bukkit.getPluginManager().callEvent(new PlayerEntryGeneratedEvent(this));
     }

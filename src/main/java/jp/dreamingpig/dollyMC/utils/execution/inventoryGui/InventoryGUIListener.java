@@ -65,28 +65,4 @@ public class InventoryGUIListener implements Listener {
         //現在のGUIを終了させる。
         AbstractExecution.unregisterExecution(ev.getPlayer().getUniqueId(), null);
     }
-
-    @EventHandler
-    void test(PlayerArmSwingEvent ev){
-
-
-        InventoryGUI<Boxed<Boolean>> billingGUI = new InventoryGUI<Boxed<Boolean>>("支払いGUI", 1)
-                .pushContent(new InventoryGUI.GUIStaticItem<>(3, ItemStack.of(Material.GREEN_CONCRETE), (instance)->{
-                    instance.getContainer().set(true);
-                    instance.trySuspend(null);
-                }))
-                .pushContent(new InventoryGUI.GUIStaticItem<>(5, ItemStack.of(Material.RED_CONCRETE), (instance)->{
-                    instance.getContainer().set(false);
-                    instance.trySuspend(null);
-                }));
-
-        var container = new Boxed<Boolean>(false);
-        var scenario = new ExecutionScenario<Boxed<Boolean>>(container, s -> {
-            new InventoryGUIInstance<>(billingGUI.withScenario(s), ev.getPlayer(), s.getContainer());
-        }, (s, callback) -> {
-           ev.getPlayer().sendMessage(s.getContainer().get() ? "成功" : "失敗");
-           if(callback != null) callback.run();
-        });
-        scenario.run();
-    }
 }

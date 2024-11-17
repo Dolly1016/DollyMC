@@ -1,8 +1,10 @@
 package jp.dreamingpig.dollyMC.utils.execution.actionEvent;
 
 
+import jp.dreamingpig.dollyMC.utils.execution.AbstractExecution;
 import jp.dreamingpig.dollyMC.utils.execution.ContainerConstructor;
 import jp.dreamingpig.dollyMC.utils.execution.ExecutionScenario;
+import jp.dreamingpig.dollyMC.utils.execution.inventoryGui.InventoryGUIInstance;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,5 +97,9 @@ public class ActionEvent<Container> {
     public ActionEvent<Container> withScenario(ExecutionScenario<?> chain){
         this.scenario = chain;
         return this;
+    }
+
+    public AbstractExecution<Container> execute(Player player, Container container){
+        return new ActionEventInstance<>(this, player, container);
     }
 }

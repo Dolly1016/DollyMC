@@ -1,7 +1,9 @@
 package jp.dreamingpig.dollyMC.utils.execution.inventoryGui;
 
+import jp.dreamingpig.dollyMC.utils.execution.AbstractExecution;
 import jp.dreamingpig.dollyMC.utils.execution.ExecutionScenario;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -174,5 +176,9 @@ public class InventoryGUI<Container> {
     public InventoryGUI<Container> withScenario(ExecutionScenario<?> chain){
         this.scenario = chain;
         return this;
+    }
+
+    public AbstractExecution<Container> execute(Player player, Container container){
+        return new InventoryGUIInstance<>(this, player, container);
     }
 }
