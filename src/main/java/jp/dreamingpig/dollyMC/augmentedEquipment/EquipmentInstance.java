@@ -1,5 +1,6 @@
 package jp.dreamingpig.dollyMC.augmentedEquipment;
 
+import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
@@ -15,8 +16,15 @@ public class EquipmentInstance implements Listener {
     }
     static EquipmentInstance instantiate(String classTag, Player player, String argument){
         if(allConstructors.containsKey(classTag)){
-            return allConstructors.get(classTag).apply(player, argument);
+            var instance = allConstructors.get(classTag).apply(player, argument);
+            instance.player = player;
+            return instance;
         }
         return null;
     }
+    @Getter
+    private Player player;
+
+    public void onActivated(){}
+    public void onInactivated(){}
 }

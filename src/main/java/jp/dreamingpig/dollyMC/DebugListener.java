@@ -9,6 +9,9 @@ import jp.dreamingpig.dollyMC.player.OnlinePlayer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,6 +28,19 @@ public class DebugListener implements Listener {
                 @EventHandler
                 void onPlayerArmSwing(PlayerArmSwingEvent ev){
                     ev.getPlayer().sendMessage(arg);
+                }
+            };
+        });
+        EquipmentInstance.registerDefinition("heart", (p, arg)->{
+            var heartNum = Integer.parseInt(arg);
+            return new EquipmentInstance(){
+                @Override
+                public void onActivated(){
+                    getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).addModifier(new AttributeModifier(NamespacedKey.fromString("debug.heart"), heartNum, AttributeModifier.Operation.ADD_SCALAR));
+                }
+                @Override
+                public void onInactivated(){
+                    getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).removeModifier(NamespacedKey.fromString("debug.heart"));
                 }
             };
         });
@@ -45,10 +61,10 @@ public class DebugListener implements Listener {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] strings) {
                 if(commandSender instanceof Player player){
-                    ItemStack is = ItemStack.of(Material.AZALEA);
+                    ItemStack is = ItemStack.of(Material.POPPY);
                     is.editMeta(meta -> {
-                        AugmentedEquipment.setAEType(meta.getPersistentDataContainer(), "test", "instance$" + (strings.length >= 1 ? strings[0] : "blank" ));
-                        meta.displayName(PlainTextComponentSerializer.plainText().deserialize("テスト装備"));
+                        AugmentedEquipment.setAEType(meta.getPersistentDataContainer(), "test", "heart$" + (strings.length >= 1 ? strings[0] : "4" ));
+                        meta.displayName(PlainTextComponentSerializer.plainText().deserialize("体力増強"));
                     });
                     player.getInventory().addItem(is);
                 }else{

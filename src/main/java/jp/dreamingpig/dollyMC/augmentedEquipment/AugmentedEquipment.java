@@ -54,7 +54,10 @@ public class AugmentedEquipment {
     }
 
     public void onUpdateEquipments(){
-        for(var listener : allInstances) HandlerList.unregisterAll(listener);
+        for(var listener : allInstances) {
+            listener.onInactivated();
+            HandlerList.unregisterAll(listener);
+        }
         allInstances.clear();
         for(var slot : allSlots.get()){
             var equipment = getEquipment(slot).get();
@@ -71,7 +74,10 @@ public class AugmentedEquipment {
                 }
             }
         }
-        for(var listener : allInstances) Bukkit.getPluginManager().registerEvents(listener, DollyMC.getPlugin());
+        for(var listener : allInstances) {
+            Bukkit.getPluginManager().registerEvents(listener, DollyMC.getPlugin());
+            listener.onActivated();
+        }
     }
 
     public void openGUI(){
